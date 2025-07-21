@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/notion.js": {
+      "maxDuration": 10
+    }
+  },
+  "env": {
+    "NOTION_API_KEY": "@notion-api-key"
+  }
+}

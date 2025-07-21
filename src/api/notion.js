@@ -4,7 +4,9 @@ import { DATABASE_IDS } from '../config/databases';
 export class NotionAPI {
     constructor() {
         // 使用代理服务器
-        this.apiUrl = process.env.API_URL || 'http://localhost:3001/api/notion';
+        this.apiUrl = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3001/api/notion'
+            : 'https://lifeos-dashboard.vercel.app/api/notion';
     }
 
     // 获取数据库内容
