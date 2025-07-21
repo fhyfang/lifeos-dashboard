@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人数字系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- 顶部导航 -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <h1>个人数字系统</h1>
+                <div class="countdown-section">
+                    <div class="countdown-number" id="days-remaining">10000</div>
+                    <div class="countdown-label">Days of Potential Remaining</div>
+                    <div class="countdown-end-date">Ends on: <span id="end-date">2051-03-15</span></div>
+                </div>
+            </div>
+            <div class="nav-menu">
+                <a href="#main" class="nav-link active">主仪表盘</a>
+                <a href="#foundation" class="nav-link">基座分析</a>
+                <a href="#goals" class="nav-link">目标执行</a>
+                <a href="#resources" class="nav-link">资源分析</a>
+                <a href="#leverage" class="nav-link">杠杆分析</a>
+                <a href="#growth" class="nav-link">成长引擎</a>
+                <a href="#weekly" class="nav-link">周报</a>
+            </div>
+        </nav>
+
+        <!-- 主内容区域 -->
+        <main class="main-content">
+            <!-- 战略罗盘 -->
+            <section id="compass" class="dashboard-section">
+                <h2 class="section-title">战略罗盘 - 我的方向是什么？</h2>
+                <div class="compass-grid">
+                    <div class="value-cards" id="values-container"></div>
+                    <div class="goals-table" id="goals-container"></div>
+                    <div class="goal-investment" id="investment-container"></div>
+                </div>
+            </section>
+
+            <!-- 执行驾驶舱 -->
+            <section id="cockpit" class="dashboard-section">
+                <h2 class="section-title">执行驾驶舱 - 今天做什么？</h2>
+                <div class="cockpit-grid">
+                    <div class="actions-list" id="actions-container"></div>
+                    <div class="vitals-panel" id="vitals-container"></div>
+                    <div class="quick-entry" id="quick-entry-container"></div>
+                </div>
+            </section>
+
+            <!-- 基座分析 -->
+            <section id="foundation" class="dashboard-section">
+                <h2 class="section-title">基座分析 - 能量系统状态</h2>
+                <div class="foundation-grid">
+                    <div class="kpi-overview" id="foundation-kpi"></div>
+                    <div class="emotion-analysis" id="emotion-analysis"></div>
+                    <div class="health-correlation" id="health-correlation"></div>
+                </div>
+            </section>
+
+            <!-- 成长引擎 -->
+            <section id="growth" class="dashboard-section">
+                <h2 class="section-title">成长引擎 - 持续进化</h2>
+                <div class="growth-grid">
+                    <div class="growth-events" id="growth-events"></div>
+                    <div class="skill-radar" id="skill-radar"></div>
+                    <div class="lessons-gallery" id="lessons-gallery"></div>
+                </div>
+            </section>
+
+            <!-- 周报 -->
+            <section id="weekly" class="dashboard-section">
+                <h2 class="section-title">周报 - 回顾与规划</h2>
+                <div class="weekly-grid">
+                    <div class="week-snapshot" id="week-snapshot"></div>
+                    <div class="week-insights" id="week-insights"></div>
+                    <div class="next-week-plan" id="next-week-plan"></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- 加载提示 -->
+        <div class="loading-overlay" id="loading">
+            <div class="spinner"></div>
+            <p>正在加载数据...</p>
+        </div>
+    </div>
+</body>
+</html>
