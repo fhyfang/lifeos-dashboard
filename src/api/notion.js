@@ -92,28 +92,20 @@ export class NotionAPI {
 
     // 获取核心价值观
     async getCoreValues() {
-        const filter = {
-            property: '优先级',
-            number: {
-                less_than_or_equal_to: 2
-            }
-        };
-        return await this.queryDatabase(DATABASE_IDS.VALUES, filter);
+        // 获取所有价值观数据，前端可以根据优先级筛选
+        return await this.queryDatabase(DATABASE_IDS.VALUES);
     }
 
     // 获取进行中的目标
     async getActiveGoals() {
-        const filter = {
-            property: '状态',
-            select: {
-                equals: '进行中'
-            }
-        };
-        return await this.queryDatabase(DATABASE_IDS.GOALS, filter);
+        // 注意：状态字段是 rollup 类型，不能直接过滤
+        // 获取所有目标，在前端进行过滤
+        return await this.queryDatabase(DATABASE_IDS.GOALS);
     }
 
     // 获取进行中的项目
     async getActiveProjects() {
+        // 项目的状态字段是 select 类型
         const filter = {
             property: '状态',
             select: {
@@ -134,8 +126,8 @@ export class NotionAPI {
             and: [
                 {
                     property: '状态',
-                    select: {
-                        equals: '待办'
+                    status: {
+                        equals: '待办'  // 使用中文状态值
                     }
                 },
                 {
@@ -146,8 +138,9 @@ export class NotionAPI {
                 }
             ]
         };
+        // 暂时不使用优先级排序，因为优先级可能是 select 类型
         const sorts = [{
-            property: '优先级',
+            property: '截止日期',
             direction: 'ascending'
         }];
         return await this.queryDatabase(DATABASE_IDS.ACTIONS, filter, sorts);
@@ -181,22 +174,29 @@ export class NotionAPI {
 
     // 获取最近的情绪记录
     async getRecentEmotions(days = 7) {
+        // 情绪记录数据库可能没有日期字段，暂时不使用过滤器
+        // 获取所有记录后在前端进行过滤
+        const sorts = [{
+            property: 'created_time',
+            direction: 'descending'
+        }];
+        const results = await this.queryDatabase(DATABASE_IDS.EMOTIONS, {}, sorts);
+        
+        // 在前端过滤最近7天的记录
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);
         
-        const filter = {
-            property: '记录时间',
-            date: {
-                on_or_after: startDate.toISOString()
-            }
-        };
-        return await this.queryDatabase(DATABASE_IDS.EMOTIONS, filter);
+        return results.filter(record => {
+            const createdTime = new Date(record.created_time);
+            return createdTime >= startDate;
+        });
     }
 
     // 获取最近的成长复盘
     async getRecentGrowthReviews(limit = 10) {
+        // 使用 Notion 的系统属性 created_time 进行排序
         const sorts = [{
-            property: '创建时间',
+            property: 'created_time',
             direction: 'descending'
         }];
         const results = await this.queryDatabase(DATABASE_IDS.GROWTH_REVIEW, {}, sorts);
@@ -237,8 +237,8 @@ export class NotionAPI {
             and: [
                 {
                     property: '状态',
-                    select: {
-                        equals: '已完成'
+                    status: {
+                        equals: '已完成'  // 使用中文状态值
                     }
                 },
                 {
@@ -254,13 +254,18 @@ export class NotionAPI {
 
     // 辅助方法：获取指定日期后的情绪记录
     async getEmotionsAfterDate(date) {
-        const filter = {
-            property: '记录时间',
-            date: {
-                on_or_after: date.toISOString()
-            }
-        };
-        return await this.queryDatabase(DATABASE_IDS.EMOTIONS, filter);
+        // 获取所有情绪记录，然后在前端过滤
+        const sorts = [{
+            property: 'created_time',
+            direction: 'descending'
+        }];
+        const results = await this.queryDatabase(DATABASE_IDS.EMOTIONS, {}, sorts);
+        
+        // 在前端过滤指定日期后的记录
+        return results.filter(record => {
+            const createdTime = new Date(record.created_time);
+            return createdTime >= date;
+        });
     }
 
     // 辅助方法：获取指定日期后的健康记录

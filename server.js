@@ -29,11 +29,30 @@ app.post('/api/notion', async (req, res) => {
 
     switch (method) {
       case 'queryDatabase':
-        const queryResponse = await notion.databases.query({
+        const queryParams = {
           database_id: databaseId,
-          filter: filter || undefined,
-          sorts: sorts || undefined,
-        });
+        };
+        
+        // Only add filter if it's not empty
+        if (filter && Object.keys(filter).length > 0) {
+          queryParams.filter = filter;
+        }
+        
+        // Only add sorts if it's not empty
+        if (sorts && sorts.length > 0) {
+          queryParams.sorts = sorts;
+        }
+        
+        // Log the query for debugging
+        console.log('Querying database:', databaseId);
+        if (filter && Object.keys(filter).length > 0) {
+          console.log('Filter:', JSON.stringify(filter, null, 2));
+        }
+        if (sorts && sorts.length > 0) {
+          console.log('Sorts:', JSON.stringify(sorts, null, 2));
+        }
+        
+        const queryResponse = await notion.databases.query(queryParams);
         res.json(queryResponse);
         break;
       
