@@ -4,7 +4,18 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+
+// 配置CORS以允许GitHub Pages访问
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'https://fhyfang.github.io',
+    'https://lifeos-dashboard.onrender.com' // Render部署URL
+  ],
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 const notion = new Client({
