@@ -51,7 +51,7 @@ export class CockpitDashboard {
         item.className = 'action-item';
         
         const title = extractNotionText(action.properties['行动描述']);
-        const priority = extractNotionSelect(action.properties['优先级']);
+        const priority = action.properties['优先级']?.select?.name || '';
         const energyRequired = extractNotionSelect(action.properties['能量要求']);
         const deadline = extractNotionDate(action.properties['截止日期']);
         const estimatedTime = extractNotionNumber(action.properties['预估时长']);
@@ -81,20 +81,19 @@ export class CockpitDashboard {
 
     getPriorityClass(priority) {
         const priorityMap = {
-            'P1-紧急重要': 'priority-urgent',
-            'P2-重要': 'priority-important',
-            'P3-普通': 'priority-normal',
-            'P4-可选': 'priority-optional'
+            'P1必须完成': 'priority-urgent',
+            'P2应该完成': 'priority-important',
+            'P3可以完成': 'priority-normal',
+            'P4有空再做': 'priority-optional'
         };
         return priorityMap[priority] || 'priority-normal';
     }
 
     getEnergyIcon(energy) {
         const energyMap = {
-            '⚡高能量': '🔥',
-            '💪中等能量': '⚡',
-            '😌低能量': '🌱',
-            '🛋️最小能量': '💤'
+            '高能量(深度专注)': '🔥',
+            '中能量(常规任务)': '⚡',
+            '低能量(机械琐碎)': '🌱'
         };
         return energyMap[energy] || '⚡';
     }
@@ -134,16 +133,22 @@ export class CockpitDashboard {
         
         // 今日心情
         const latestEmotion = recentEmotions[0];
-        const moodScore = latestEmotion ? extractNotionNumber(latestEmotion.properties['当前心情评分']) : 0;
-        vitalsGrid.appendChild(this.createVitalCard('今日心情', getStarRating(moodScore, 10), this.getMoodEmoji(moodScore)));
+        // 当前心情评分是Select类型，值为"1分/2分/3分/4分/5分"
+        const moodScoreText = latestEmotion ? extractNotionSelect(latestEmotion.properties['当前心情评分']) : '0分';
+        const moodScore = parseInt(moodScoreText.replace('分', '')) || 0;
+        vitalsGrid.appendChild(this.createVitalCard('今日心情', getStarRating(moodScore, 5), this.getMoodEmoji(moodScore)));
         
         // 今日精力
         const latestHealth = recentHealth[0];
-        const energyLevel = latestHealth ? extractNotionNumber(latestHealth.properties['精力水平']) : 0;
+        // 精力水平是Rich Text类型
+        const energyLevelText = latestHealth ? extractNotionText(latestHealth.properties['精力水平']) : '0';
+        const energyLevel = parseFloat(energyLevelText) || 0;
         vitalsGrid.appendChild(this.createVitalCard('今日精力', getStarRating(energyLevel), '⚡'));
         
         // 睡眠质量
-        const sleepQuality = latestHealth ? extractNotionSelect(latestHealth.properties['睡眠质量']) : '未记录';
+        // 睡眠质量评分字段是Rich Text类型
+        const sleepQualityText = latestHealth ? extractNotionText(latestHealth.properties['睡眠评分']) : '0';
+        const sleepQuality = `${sleepQualityText}分`;
         vitalsGrid.appendChild(this.createVitalCard('睡眠质量', sleepQuality, '😴'));
         
         // 今日专注时长
@@ -178,7 +183,9 @@ export class CockpitDashboard {
 
     calculateTodayFocusHours(logs) {
         return logs.reduce((total, log) => {
-            const duration = extractNotionNumber(log.properties['实际时长']) || 0;
+            // 实际时长（分钟）是Rich Text类型
+            const durationText = extractNotionText(log.properties['实际时长（分钟）']) || '0';
+            const duration = parseFloat(durationText) / 60 || 0; // 转换为小时
             const focusQuality = extractNotionNumber(log.properties['专注质量']) || 0;
             // 只计算专注质量>=3的时间
             if (focusQuality >= 3) {
@@ -255,7 +262,9 @@ export class CockpitDashboard {
         
         const activity = extractNotionText(log.properties['活动名称']);
         const startTime = extractNotionDate(log.properties['开始时间']);
-        const duration = extractNotionNumber(log.properties['实际时长']);
+        // 实际时长（分钟）是Rich Text类型
+        const durationText = extractNotionText(log.properties['实际时长（分钟）']) || '0';
+        const duration = parseFloat(durationText) / 60 || 0; // 转换为小时
         const category = extractNotionSelect(log.properties['活动类别']);
         const value = extractNotionNumber(log.properties['价值评分']);
         
@@ -265,7 +274,7 @@ export class CockpitDashboard {
                 <div class="log-activity">${activity}</div>
                 <div class="log-meta">
                     <span class="log-category tag tag-${category}">${category}</span>
-                    <span class="log-duration">${duration}h</span>
+                    <span class="log-duration">${duration.toFixed(1)}h</span>
                     <span class="log-value">${getStarRating(value)}</span>
                 </div>
             </div>

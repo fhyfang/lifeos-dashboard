@@ -32,7 +32,22 @@ export class CompassDashboard {
         const valuesGrid = document.createElement('div');
         valuesGrid.className = 'values-grid';
         
-        values.forEach(value => {
+        // 按优先级排序并过滤出前2个
+        const priorityValues = values
+            .filter(value => {
+                const priorityText = value.properties['优先级']?.select?.name || '';
+                const priorityNum = parseInt(priorityText.replace('分', '')) || 0;
+                return priorityNum >= 4; // 4分以上的为重要价值观
+            })
+            .sort((a, b) => {
+                const priorityTextA = a.properties['优先级']?.select?.name || '';
+                const priorityTextB = b.properties['优先级']?.select?.name || '';
+                const priorityA = parseInt(priorityTextA.replace('分', '')) || 0;
+                const priorityB = parseInt(priorityTextB.replace('分', '')) || 0;
+                return priorityB - priorityA; // 分数高的排前面
+            });
+        
+        priorityValues.forEach(value => {
             const card = this.createValueCard(value);
             valuesGrid.appendChild(card);
         });
@@ -46,7 +61,7 @@ export class CompassDashboard {
         
         const title = extractNotionText(value.properties['价值观名称']);
         const description = extractNotionText(value.properties['核心描述']);
-        const priority = extractNotionNumber(value.properties['优先级']);
+        const priority = value.properties['优先级']?.select?.name || '';
         
         card.innerHTML = `
             <div class="value-priority">优先级 ${priority}</div>
@@ -92,7 +107,7 @@ export class CompassDashboard {
     createGoalRow(goal, projects) {
         const row = document.createElement('tr');
         
-        const name = extractNotionText(goal.properties['目标名称']);
+        const name = extractNotionText(goal.properties['理想状态']); // 目标库的主标识字段是"理想状态"
         const domain = goal.properties['领域']?.select?.name || '';
         const relatedProjects = this.getRelatedProjects(goal.id, projects);
         const progress = this.calculateGoalProgress(relatedProjects);
@@ -123,7 +138,9 @@ export class CompassDashboard {
         if (projects.length === 0) return 0;
         
         const totalProgress = projects.reduce((sum, project) => {
-            const progress = extractNotionNumber(project.properties['项目进度']) || 0;
+            // 项目进度字段是Rich Text类型
+            const progressText = extractNotionText(project.properties['项目进度']) || '0';
+            const progress = parseFloat(progressText) || 0;
             return sum + progress;
         }, 0);
         
@@ -153,7 +170,9 @@ export class CompassDashboard {
         
         const projectName = extractNotionText(project.properties['项目名称']);
         const weeklyHours = this.calculateWeeklyHours(project.id, logs);
-        const progress = extractNotionNumber(project.properties['项目进度']) || 0;
+        // 项目进度字段是Rich Text类型
+        const progressText = extractNotionText(project.properties['项目进度']) || '0';
+        const progress = parseFloat(progressText) || 0;
         
         card.innerHTML = `
             <h4>${projectName}</h4>
@@ -174,9 +193,13 @@ export class CompassDashboard {
 
     calculateWeeklyHours(projectId, logs) {
         return logs.reduce((total, log) => {
-            const relatedProjects = log.properties['关联目标/任务']?.relation || [];
-            if (relatedProjects.some(rel => rel.id === projectId)) {
-                const duration = extractNotionNumber(log.properties['实际时长']) || 0;
+            const relatedActions = log.properties['关联行动']?.relation || [];
+            // 检查日志关联的行动是否属于该项目
+            // 这里需要通过行动的关联项目来判断
+            if (relatedActions.some(rel => rel.id === projectId)) {
+                // 实际时长字段是Rich Text类型，需要特殊处理
+                const durationText = extractNotionText(log.properties['实际时长（分钟）']) || '0';
+                const duration = parseFloat(durationText) / 60 || 0; // 转换为小时
                 return total + duration;
             }
             return total;
